@@ -85,6 +85,9 @@ const ConversasComponent = ({
       <ul id={"all-contacts"} onClick={() => onChangeContact()}>
         {chats.length > 0
           ? chats.map((chat, index) => {
+              const contact = contacts.find(
+                (item) => item.id._serialized === chat.id
+              );
               return (
                 <li
                   className={"contact-li"}
@@ -106,9 +109,7 @@ const ConversasComponent = ({
                       />
                       <div className={"principal-info"}>
                         <p className={"contact-name"}>
-                          {contacts.find(
-                            (item) => item.id._serialized === chat.id
-                          )?.name ||
+                          {contact?.name ||
                             chat.name ||
                             chat?.id?.replace("@c.us", "").replace("@g.us", "")}
                         </p>

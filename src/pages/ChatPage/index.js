@@ -292,49 +292,40 @@ const SendMessagePage = () => {
     }
   };
 
-  const onClickContact = useCallback(async (contact) => {
+  const onClickContact = useCallback(async (chat) => {
     setImgContact("");
-    setChoosedContact(contact);
+    setChoosedContact(chat);
     setOpenLoading(true);
     setAllMessages([]);
     setHasNoMore(false);
 
     try {
-      if (contact.id.includes("@g.us")) {
-        const { data } = await api.get(
-          `${getSession()}/chat-by-id/${contact.id.replace(
-            /[@g.us,@g.us]/g,
-            ""
-          )}?isGroup=true`,
-          config()
-        );
+      const { data } = await api.get(
+        `${getSession()}/get-messages/${chat.id}?count=10`,
+        config()
+      );
+
+      setAllMessages(
+        data?.response?.filter((message) => !message.isNotification) || []
+      );
+
+      if (data?.response?.length < 10) {
+        setHasNoMore(true);
+      }
+
+      if (chat.id.includes("@c.us")) {
         await api.post(
           `${getSession()}/send-seen`,
-          { phone: contact.id.replace("@g.us", "") },
+          { phone: chat.id.replace("@c.us", "") },
           config()
         );
-        setAllMessages(data?.response || []);
-      } else {
-        const { data } = await api.get(
-          `${getSession()}/chat-by-id/${contact.id.replace(
-            /[@c.us,@c.us]/g,
-            ""
-          )}?isGroup=false`,
-          config()
-        );
-        await api.post(
-          `${getSession()}/send-seen`,
-          { phone: contact.id.replace("@c.us", "") },
-          config()
-        );
-        setAllMessages(data?.response || []);
       }
     } catch (e) {
       console.log(e);
     }
 
     scrollToBottom();
-    contact.unreadCount = 0;
+    chat.unreadCount = 0;
     setOpenLoading(false);
   }, []);
 
@@ -486,18 +477,18 @@ const SendMessagePage = () => {
   async function loadMore() {
     setLoadingMoreMessages(true);
     try {
-      let param = "?isGroup=false";
-      if (choosedContact.id.includes("@g.us")) {
-        param = "?isGroup=true";
-      }
       const { data } = await api.get(
-        `${getSession()}/load-earlier-messages/${choosedContact.id}${param}`,
+        `${getSession()}/get-messages/${choosedContact.id.replace(
+          /[@c.us,@c.us]/g,
+          ""
+        )}?count=5&id=${allMessages[0].id}&direction=before`,
         config()
       );
-      if (data && data.response && Array.isArray(data.response)) {
-        setAllMessages((prev) => [...data.response, ...prev]);
-      }
-      if (data && !data.response) {
+      setAllMessages((prev) => [
+        ...data?.response?.filter((message) => !message.isNotification),
+        ...prev,
+      ]);
+      if (data?.response?.length < 5) {
         setHasNoMore(true);
       }
     } catch (e) {

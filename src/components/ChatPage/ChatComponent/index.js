@@ -78,7 +78,7 @@ const ChatComponent = ({
     );
 
     if (type === "image") {
-      imageRef.current.src = `data:image/png;base64, ${response.data}`;
+      imageRef.current.src = `data:image/png;base64, ${response.data.base64}`;
       setDisplay("none");
     } else if (type === "video") {
       imageRef.current.src = `data:video/webm;base64, ${response.data}`;
@@ -259,7 +259,7 @@ const ChatComponent = ({
               <ImageContainer>
                 <img
                   ref={imageRef}
-                  src={`data:image/png;base64, ${message.body}`}
+                  src={"favicon.ico"} //cant find thumbnail in response
                   loading={"lazy"}
                   alt={message.caption}
                   onClick={handleOpenModalImage}
